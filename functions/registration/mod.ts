@@ -3,14 +3,14 @@ import { RESTGetAPICurrentUserResult } from 'https://deno.land/x/discord_api_typ
 
 export default async ({ req, res, log, error }: any) => {
   const project = Deno.env.get('APPWRITE_FUNCTION_PROJECT_ID')
-  const key = Deno.env.get('APPWRITE_API_KEY')
-  const database = Deno.env.get('DATABASE_ID')
-  const collection = Deno.env.get('DATABASE_ENROLLMENT_ID')
+  // const key = Deno.env.get('APPWRITE_API_KEY')
+  // const database = Deno.env.get('DATABASE_ID')
+  // const collection = Deno.env.get('DATABASE_ENROLLMENT_ID')
   if (!project) error('Appwrite project environment variable is not defined')
-  if (!key) error('Appwrite key environment variable is not defined')
-  if (!database) error('Database id environment variable is not defined')
-  if (!collection) error('Collection id environment variable is not defined')
-  if (!project || !key || !database || !collection)  return res.empty()
+  //if (!key) error('Appwrite key environment variable is not defined')
+  // if (!database) error('Database id environment variable is not defined')
+  //  if (!collection) error('Collection id environment variable is not defined')
+  if (!project)  return res.empty()
   const userClient = new Client()
     .setEndpoint('https://appwrite.qbitmc.com/v1')
     .setProject(project)
@@ -31,6 +31,8 @@ export default async ({ req, res, log, error }: any) => {
   const discordUser = (await discordResponse.json()) as RESTGetAPICurrentUserResult
   log('locale', discordUser.locale)
   log('username', discordUser.id)
+
+  return res.empty()
 
   // const client = new Client()
   //   .setEndpoint('https://appwrite.qbitmc.com/v1')
