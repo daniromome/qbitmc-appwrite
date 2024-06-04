@@ -10,9 +10,7 @@ export default async ({ req, res, log, error }: any) => {
   if (!database) error('Database id environment variable is not defined')
   if (!collection) error('Collection id environment variable is not defined')
   
-  log(typeof req.body)
-  log(req.body)
-  const { accessToken } = req.body
+  const { accessToken } = JSON.parse(req.body)
   if (!accessToken) error('Discord access token was not sent in the request body')
   
   if (!project || !database || !collection || !accessToken) return res.empty()
