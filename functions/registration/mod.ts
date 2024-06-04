@@ -9,8 +9,12 @@ export default async ({ req, res, log, error }: any) => {
   if (!project) error('Appwrite project environment variable is not defined')
   if (!database) error('Database id environment variable is not defined')
   if (!collection) error('Collection id environment variable is not defined')
-  if (!project || !database || !collection)  return res.empty()
-
+    
+  const { accessToken } = JSON.parse(req.body)
+  if (!accessToken) error('Discord access token was not sent in the request body')
+  
+  if (!project || !database || !collection || !accessToken) return res.empty()
+      
   const userClient = new Client()
     .setEndpoint('https://appwrite.qbitmc.com/v1')
     .setProject(project)
@@ -28,7 +32,7 @@ export default async ({ req, res, log, error }: any) => {
   } catch (_) {
     const discordResponse = await fetch(
       'https://discord.com/api/v10/users/@me',
-      { headers: { authorization: `Bearer ${req.accessToken}` }, method: 'GET' }
+      { headers: { authorization: `Bearer ${accessToken}` }, method: 'GET' }
     )
     const discordUser = (await discordResponse.json()) as RESTGetAPICurrentUserResult
     if (env === 'dev') {
@@ -36,7 +40,7 @@ export default async ({ req, res, log, error }: any) => {
       log('User\'s discord id:', discordUser.id)
     }
     if (discordUser.locale) await account.updatePrefs({ ...account.getPrefs(), locale: discordUser.locale })
-    const profile = await databases.createDocument(database, collection, user.$id, { discord: discordUser.id })
+    const profile = await databases.createDocument(database, collection, user.$id, { discord: discordUser.id }, [])
     return res.json(profile)
   }
 }
