@@ -9,7 +9,8 @@ export default async ({ req, res, log, error }: any) => {
   if (!project) error('Appwrite project environment variable is not defined')
   if (!database) error('Database id environment variable is not defined')
   if (!collection) error('Collection id environment variable is not defined')
-    
+  
+  log(req.body)
   const { accessToken } = req.body
   if (!accessToken) error('Discord access token was not sent in the request body')
   
