@@ -2,10 +2,12 @@ import { Account, Client, Databases, Permission, Role } from 'https://deno.land/
 import { RESTGetAPICurrentUserResult } from "https://deno.land/x/discord_api_types@0.37.87/v10.ts";
 
 export default async ({ req, res, log, error }: any) => {
+  const endpoint = Deno.env.get('APPWRITE_ENDPOINT')
   const project = Deno.env.get('APPWRITE_FUNCTION_PROJECT_ID')
   const database = Deno.env.get('APPWRITE_DATABASE_ID')
   const collection = Deno.env.get('APPWRITE_COLLECTION_PROFILE')
   const env = Deno.env.get('ENV') || 'dev'
+  if (!endpoint) throw new Error('Appwrite endpoint environment variable is not defined') 
   if (!project) throw new Error('Appwrite project environment variable is not defined')
   if (!database) throw new Error('Database id environment variable is not defined')
   if (!collection) throw new Error('Collection id environment variable is not defined')
@@ -14,7 +16,7 @@ export default async ({ req, res, log, error }: any) => {
   if (!accessToken) throw new Error('Discord access token was not sent in the request body')
       
   const userClient = new Client()
-    .setEndpoint('https://appwrite.qbitmc.com/v1')
+    .setEndpoint(endpoint)
     .setProject(project)
     .setJWT(req.headers['x-appwrite-user-jwt'])
 
@@ -30,7 +32,7 @@ export default async ({ req, res, log, error }: any) => {
     const key = Deno.env.get('APPWRITE_API_KEY')
     if (!key) throw new Error('Appwrite key environment variable is not defined')
     const client = new Client()
-      .setEndpoint('https://cloud.appwrite.io/v1')
+      .setEndpoint(endpoint)
       .setProject(project)
       .setKey(key);
     const databases = new Databases(client)
