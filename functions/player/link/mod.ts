@@ -21,6 +21,8 @@ export default async ({ req, res, log, _error }: any) => {
   const { accessToken } = JSON.parse(req.body)
   if (!accessToken) throw new Error('Micosoft access token was not sent in the request body')
 
+  const jsonHeaders = { 'Content-Type': 'application/json', Accept: 'application/json' }
+
   if (env === 'dev') log('Requesting xbox live auth token...')
   const xboxLiveAuthRequest = await fetch('https://user.auth.xboxlive.com/user/authenticate', {
     method: 'POST',
@@ -32,7 +34,8 @@ export default async ({ req, res, log, _error }: any) => {
       },
       RelyingParty: 'http://auth.xboxlive.com',
       TokenType: 'JWT'
-    })
+    }),
+    headers: jsonHeaders
   })
 
   const xboxLiveAuthResponse: XboxSecureToken = await xboxLiveAuthRequest.json()
@@ -48,7 +51,8 @@ export default async ({ req, res, log, _error }: any) => {
       },
       RelyingParty: 'rp://api.minecraftservices.com/',
       TokenType: 'JWT'
-    })
+    }),
+    headers: jsonHeaders
   })
 
   const xboxSecureToken: XboxSecureToken = await xboxSecureTokenRequest.json()
@@ -61,7 +65,8 @@ export default async ({ req, res, log, _error }: any) => {
     method: 'POST',
     body: JSON.stringify({
       identityToken: `XBL3.0 x=${xboxSecureToken.DisplayClaims.xui.at(0)?.uhs};${xboxSecureToken.Token}`
-    })
+    }),
+    headers: jsonHeaders
   })
 
   const minecraftAuth: MinecraftAuth = await minecraftAuthRequest.json()
@@ -70,7 +75,7 @@ export default async ({ req, res, log, _error }: any) => {
   if (env === 'dev') log('Getting user\'s minecraft profile...')
   const minecraftProfileRequest = await fetch(`${minecraftApi}/minecraft/profile`, {
     method: 'GET',
-    headers: { Authorization: `Bearer ${minecraftAuth.access_token}`}
+    headers: { ...jsonHeaders, Authorization: `Bearer ${minecraftAuth.access_token}` }
   })
 
   const minecraftProfile: { id: string, name: string } = await minecraftProfileRequest.json()
