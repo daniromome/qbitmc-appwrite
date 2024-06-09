@@ -18,14 +18,14 @@ export default async ({ req, res, log, error }: any) => {
   if (!playerCollection) throw new Error('Player collection id environment variable is not defined')
 
   const allowedIps = allowed ? allowed.split(',') : []
-  const ips = (req.headers['x-forwarded-for'] as string).split(',')
+  const ips = (req.headers['x-forwarded-for'] as string).split(', ')
   if (!allowedIps.some(i => ips.includes(i))) throw new Error('Unauthorized')
 
   const { uuid, name, expires } = req.body as { uuid: string; name: string; expires: string }
   if (!uuid || !name || !expires) throw new Error('Bad Request')
 
   const client = new Client()
-      .setEndpoint(endpoint)
+      .setEndpoint(endpoint) 
       .setProject(project)
       .setKey(key);
   const databases = new Databases(client)
