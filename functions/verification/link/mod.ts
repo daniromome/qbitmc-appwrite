@@ -1,5 +1,6 @@
 import { Account, Client, Databases } from 'https://deno.land/x/appwrite@11.0.0/mod.ts'
 import { Verification } from '../../../models/verification.ts'
+import { Preferences } from '../../../models/user.ts';
 
 // deno-lint-ignore no-explicit-any
 export default async ({ req, res, log, _error }: any) => {
@@ -38,12 +39,14 @@ export default async ({ req, res, log, _error }: any) => {
 
   const account = new Account(userClient)
 
-  const user = await account.get()
+  const user = await account.get<Preferences>()
 
   const [player] = await Promise.allSettled([
     databases.createDocument(database, playerCollection, verification.uuid, { ign: verification.name, profile: user.$id }),
     databases.deleteDocument(database, verificationCollection, verification.$id)
   ])
+
+  if (!user.prefs.player) await account.updatePrefs({ ...user.prefs, player: verification.uuid })
   
   log(`Successfully verified account for ${verification.name}`)
   return res.json(player)
