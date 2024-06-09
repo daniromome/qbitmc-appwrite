@@ -1,6 +1,12 @@
-import { Account, Client, Databases } from 'https://deno.land/x/appwrite@11.0.0/mod.ts'
-import { Verification } from '../../../models/verification.ts'
-import { Preferences } from '../../../models/user.ts';
+import { Account, Client, Databases, Models } from 'https://deno.land/x/appwrite@11.0.0/mod.ts'
+
+interface Verification extends Models.Document { uuid: string; name: string; expires: string }
+
+interface Preferences extends Models.Preferences {
+  nickname?: string
+  locale?: string
+  player?: string
+}
 
 // deno-lint-ignore no-explicit-any
 export default async ({ req, res, log, _error }: any) => {
