@@ -40,11 +40,11 @@ export default async ({ req, res, log, _error }: any) => {
 
   const user = await account.get()
 
-  await Promise.allSettled([
+  const [player] = await Promise.allSettled([
     databases.createDocument(database, playerCollection, verification.uuid, { ign: verification.name, profile: user.$id }),
     databases.deleteDocument(database, verificationCollection, verification.$id)
   ])
   
   log(`Successfully verified account for ${verification.name}`)
-  return res.empty()
+  return res.json(player)
 }
