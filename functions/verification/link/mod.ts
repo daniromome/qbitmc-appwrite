@@ -24,7 +24,7 @@ export default async ({ req, res, log, _error }: any) => {
   if (!verificationCollection) throw new Error('Verification collection id environment variable is not defined')
   if (!playerCollection) throw new Error('Player collection id environment variable is not defined')
 
-  const { code } = req.body as { code: number }
+  const { code } = JSON.parse(req.body)
   if (!code) throw new Error('Verification code was not sent in the request body')
 
   const client = new Client()
