@@ -114,8 +114,11 @@ export default async ({ req, res, log, _error }: any) => {
     }]})
   ])
   const files = await Promise.all(application.media.map(async (m, i) => {
-    const buffer = await storage.getFileView(bucket, m)
-    const blob = new Blob([buffer])
+    const [buffer, file] = await Promise.all([
+      storage.getFileView(bucket, m),
+      storage.getFile(bucket, m)
+    ])
+    const blob = new Blob([buffer], { type: file.mimeType })
     return { blob, name: i.toString() }
   }))
   
