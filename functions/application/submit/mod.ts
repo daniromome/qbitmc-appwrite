@@ -75,24 +75,28 @@ export default async ({ req, res, log, _error }: any) => {
     lng: getLocale((user.prefs.locale?.split('-')[0])),
     resources: {
       en: {
-        'application.public.title': 'New application',
-        'application.public.description': '{{ign}} has sent a community access request',
-        'application.private.title': '{{ign}}\'s Application',
-        'application.private.age': 'Age',
-        'application.private.reasons': 'Reasons',
-        'application.private.experiences': 'Experiences',
-        'application.private.approve': 'Approve',
-        'application.private.reject': 'Reject'
+        translation: {
+          'application.public.title': 'New application',
+          'application.public.description': '{{ign}} has sent a community access request',
+          'application.private.title': '{{ign}}\'s Application',
+          'application.private.age': 'Age',
+          'application.private.reasons': 'Reasons',
+          'application.private.experiences': 'Experiences',
+          'application.private.approve': 'Approve',
+          'application.private.reject': 'Reject'
+        }
       },
       es: {
-        'application.public.title': 'Nueva aplicación',
-        'application.public.description': '{{ign}} ha enviado una solicitud de acceso a la comunidad',
-        'application.private.title': 'Aplicación de {{ign}}',
-        'application.private.age': 'Edad',
-        'application.private.reasons': 'Razones',
-        'application.private.experiences': 'Experiencias',
-        'application.private.approve': 'Aceptar',
-        'application.private.reject': 'Rechazar'
+        translation: {
+          'application.public.title': 'Nueva aplicación',
+          'application.public.description': '{{ign}} ha enviado una solicitud de acceso a la comunidad',
+          'application.private.title': 'Aplicación de {{ign}}',
+          'application.private.age': 'Edad',
+          'application.private.reasons': 'Razones',
+          'application.private.experiences': 'Experiencias',
+          'application.private.approve': 'Aceptar',
+          'application.private.reject': 'Rechazar'
+        }
       }
     }
   })
