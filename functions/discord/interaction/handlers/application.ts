@@ -65,7 +65,7 @@ export class ApplicationHandler implements BaseHandler {
         environment.appwrite.database,
         $collectionId,
         $id,
-        { approved: this.action === 'approve' }
+        { approved: this.action === ApplicationAction.APPROVE }
       )
       return i18next.t('application.interaction.success')
     } catch (error) {
