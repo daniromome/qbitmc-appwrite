@@ -74,7 +74,7 @@ export default async ({ req, res, _log, _error }: any) => {
       const blob = new Blob([buffer], { type: file.mimeType })
       return { blob, name: file.name }
     })),
-    bot.helpers.startThreadWithoutMessage(channel, { type: ChannelTypes.PrivateThread, name: threadName, autoArchiveDuration: 1440 }),
+    bot.helpers.startThreadWithoutMessage(channel, { type: ChannelTypes.PrivateThread, name: threadName, autoArchiveDuration: 1440, invitable: false }),
     bot.helpers.sendMessage(channel, { embeds: [{
       color: DECIMAL_COLOR.PRIMARY,
       title: i18next.t('application.public.title'),
