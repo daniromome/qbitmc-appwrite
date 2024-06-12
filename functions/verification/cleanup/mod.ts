@@ -17,7 +17,7 @@ export default async ({ _req, res, log, _error }: any) => {
   const client = new Client()
       .setEndpoint(endpoint)
       .setProject(project)
-      .setKey(key);
+      .setKey(key)
   const databases = new Databases(client)
 
   const documentList = await databases.listDocuments(database, collection, [Query.lessThan('expires', new Date().toISOString())])

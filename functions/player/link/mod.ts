@@ -1,22 +1,11 @@
-import { Account, Client, Databases, ID, Permission, Role } from 'https://deno.land/x/appwrite@11.0.0/mod.ts'
-import { MinecraftAuth, XboxSecureToken } from './models.ts';
+import { Client, Databases, ID, Permission, Role, Users } from 'https://deno.land/x/appwrite@11.0.0/mod.ts'
+import { MinecraftAuth, XboxSecureToken } from './models.ts'
+import { loadEnvironment } from 'jsr:@qbitmc/deno@0.0.3/appwrite';
 
 // deno-lint-ignore no-explicit-any
 export default async ({ req, res, log, _error }: any) => {
-  const endpoint = Deno.env.get('APPWRITE_ENDPOINT')
-  const project = Deno.env.get('APPWRITE_FUNCTION_PROJECT_ID')
-  const database = Deno.env.get('APPWRITE_DATABASE_ID')
-  const profileCollection = Deno.env.get('APPWRITE_COLLECTION_PROFILE')
-  const playerCollection = Deno.env.get('APPWRITE_COLLECTION_PLAYER')
-  const env = Deno.env.get('ENV') || 'dev'
-  const key = Deno.env.get('APPWRITE_API_KEY')
-    
-  if (!endpoint) throw new Error('Appwrite endpoint environment variable is not defined') 
-  if (!project) throw new Error('Appwrite project environment variable is not defined')
-  if (!database) throw new Error('Database id environment variable is not defined')
-  if (!profileCollection) throw new Error('Profile collection id environment variable is not defined')
-  if (!playerCollection) throw new Error('Player collection id environment variable is not defined')
-  if (!key) throw new Error('Appwrite key environment variable is not defined')
+  const environment = loadEnvironment()
+  const env = environment.config.env
   
   const { accessToken } = JSON.parse(req.body)
   if (!accessToken) throw new Error('Micosoft access token was not sent in the request body')
@@ -64,7 +53,7 @@ export default async ({ req, res, log, _error }: any) => {
   const minecraftAuthRequest = await fetch(`${minecraftApi}/authentication/login_with_xbox`, {
     method: 'POST',
     body: JSON.stringify({
-      identityToken: `XBL3.0 x=${xboxSecureToken.DisplayClaims.xui.at(0)?.uhs};${xboxSecureToken.Token}`
+      identityToken: `XBL3.0 x=${xboxSecureToken.DisplayClaims.xui.at(0)?.uhs}${xboxSecureToken.Token}`
     }),
     headers: jsonHeaders
   })
@@ -85,29 +74,26 @@ export default async ({ req, res, log, _error }: any) => {
 
   const uuid = `${id.substring(0, 8)}-${id.substring(8, 4)}-${id.substring(12, 4)}-${id.substring(16, 4)}-${id.substring(20)}`
 
-  const userClient = new Client()
-    .setEndpoint(endpoint)
-    .setProject(project)
-    .setJWT(req.headers['x-appwrite-user-jwt'])
-
-  const account = new Account(userClient)
-
-  const user = await account.get()
-
   const client = new Client()
-      .setEndpoint(endpoint)
-      .setProject(project)
-      .setKey(key);
+      .setEndpoint(environment.appwrite.api.endpoint)
+      .setProject(environment.appwrite.api.project)
+      .setKey(environment.appwrite.api.key)
   const databases = new Databases(client)
+  const users = new Users(client)
+  const user = await users.get(req.headers['x-appwrite-user-id'])
   if (env === 'dev') log(`Saving player profile...`)
   await databases.createDocument(
-    database,
-    playerCollection,
+    environment.appwrite.database,
+    environment.appwrite.collection.player,
     ID.unique(),
     { uuid, name, profile: user.$id },
     [Permission.read(Role.user(user.$id))]
   )
   if (env === 'dev') log(`Player profile successfully linked!`)
-  const profile = await databases.getDocument(database, profileCollection, user.$id)
+  const profile = await databases.getDocument(
+    environment.appwrite.database,
+    environment.appwrite.collection.profile,
+    user.$id
+  )
   return res.json(profile)
 }

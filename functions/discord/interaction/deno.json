@@ -1,0 +1,6 @@
+{
+  "imports": {
+    "@qbitmc/common": "jsr:@qbitmc/common@^0.0.6",
+    "@qbitmc/deno": "jsr:@qbitmc/deno@^0.0.3"
+  }
+}

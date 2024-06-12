@@ -1,6 +1,6 @@
 import { Account, Client, Databases, Models } from 'https://deno.land/x/appwrite@11.0.0/mod.ts'
 
-interface Verification extends Models.Document { uuid: string; name: string; expires: string }
+interface Verification extends Models.Document { uuid: string name: string expires: string }
 
 interface Preferences extends Models.Preferences {
   nickname?: string
@@ -30,7 +30,7 @@ export default async ({ req, res, log, _error }: any) => {
   const client = new Client()
       .setEndpoint(endpoint)
       .setProject(project)
-      .setKey(key);
+      .setKey(key)
   const databases = new Databases(client)
 
   const verification = await databases.getDocument<Verification>(database, verificationCollection, code.toString())

@@ -1,4 +1,4 @@
-import { Models } from "https://deno.land/x/appwrite@11.0.0/mod.ts";
+import { Models } from 'https://deno.land/x/appwrite@11.0.0/mod.ts'
 
 export interface Preferences extends Models.Preferences {
   nickname?: string

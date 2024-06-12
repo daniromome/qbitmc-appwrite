@@ -2,32 +2,18 @@ import { Client, Users, Storage, Databases, ID } from 'https://deno.land/x/appwr
 import { createBot, ChannelTypes, MessageComponentTypes, ButtonStyles } from 'https://deno.land/x/discordeno@18.0.1/mod.ts'
 import { EnrollmentApplicationDocument, Preferences, DECIMAL_COLOR } from 'jsr:@qbitmc/common/models'
 import { getLocale } from 'jsr:@qbitmc/common/utils'
-import i18next from "https://esm.sh/i18next@23.11.5"
+import i18next from 'https://esm.sh/i18next@23.11.5'
+import { loadEnvironment } from "jsr:@qbitmc/deno@0.0.3/appwrite";
 
 // deno-lint-ignore no-explicit-any
 export default async ({ req, res, _log, _error }: any) => {
-  const token = Deno.env.get('DISCORD_TOKEN')
-  const channel = Deno.env.get('DISCORD_CHANNEL_APPLICATION')
-  const endpoint = Deno.env.get('APPWRITE_ENDPOINT')
-  const project = Deno.env.get('APPWRITE_FUNCTION_PROJECT_ID')
-  const key = Deno.env.get('APPWRITE_API_KEY')
-  const bucket = Deno.env.get('APPWRITE_BUCKET_APPLICATION')
-  const database = Deno.env.get('APPWRITE_DATABASE_ID')
-  const collection = Deno.env.get('APPWRITE_COLLECTION_APPLICATION_STATUS')
-  if (!collection) throw new Error('Application status collection id environment variable is not defined')
-  if (!database) throw new Error('Database id environment variable is not defined')
-  if (!endpoint) throw new Error('Appwrite endpoint environment variable is not defined') 
-  if (!project) throw new Error('Appwrite project environment variable is not defined')
-  if (!key) throw new Error('Appwrite key environment variable is not defined')
-  if (!token) throw new Error('Discord token environment variable is not defined') 
-  if (!channel) throw new Error('Discord channel application environment variable is not defined')
-  if (!bucket) throw new Error('Appwrite bucket application environment variable is not defined')
+  const environment = loadEnvironment()
   const application: EnrollmentApplicationDocument = req.body
   if (!application.$id) throw new Error('Bad Request')
   const client = new Client()
-    .setEndpoint(endpoint) 
-    .setProject(project)
-    .setKey(key);
+    .setEndpoint(environment.appwrite.api.endpoint) 
+    .setProject(environment.appwrite.api.project)
+    .setKey(environment.appwrite.api.key)
   const users = new Users(client)
   const storage = new Storage(client)
   const databases = new Databases(client)
@@ -62,20 +48,20 @@ export default async ({ req, res, _log, _error }: any) => {
     }
   })
   const player = application.profile.players.find(p => p.$id === user.prefs.player) || application.profile.players[0]
-  const bot = createBot({ token })
+  const bot = createBot({ token: environment.discord.token })
   const threadName = i18next.t('application.private.title', { ign: player.ign })
   const thumbnail = { url: `https://api.mineatar.io/head/${player.$id}?scale=16` }
   const [files, thread] = await Promise.all([
     Promise.all(application.media.map(async (m) => {
       const [buffer, file] = await Promise.all([
-        storage.getFileView(bucket, m),
-        storage.getFile(bucket, m)
+        storage.getFileView(environment.appwrite.bucket.application, m),
+        storage.getFile(environment.appwrite.bucket.application, m)
       ])
       const blob = new Blob([buffer], { type: file.mimeType })
       return { blob, name: file.name }
     })),
-    bot.helpers.startThreadWithoutMessage(channel, { type: ChannelTypes.PrivateThread, name: threadName, autoArchiveDuration: 1440, invitable: false }),
-    bot.helpers.sendMessage(channel, { embeds: [{
+    bot.helpers.startThreadWithoutMessage(environment.discord.channel.application, { type: ChannelTypes.PrivateThread, name: threadName, autoArchiveDuration: 1440, invitable: false }),
+    bot.helpers.sendMessage(environment.discord.channel.application, { embeds: [{
       color: DECIMAL_COLOR.PRIMARY,
       title: i18next.t('application.public.title'),
       description: i18next.t('application.public.description', { ign: player.ign }),
@@ -84,7 +70,12 @@ export default async ({ req, res, _log, _error }: any) => {
   ])
   
   await Promise.all([
-    databases.createDocument(database, collection, ID.unique(), { application: application.$id, channel: thread.id.toString() }),
+    databases.createDocument(
+      environment.appwrite.database,
+      environment.appwrite.collection.status,
+      ID.unique(),
+      { application: application.$id, channel: thread.id.toString() }
+    ),
     bot.helpers.addThreadMember(thread.id, application.profile.discord)
   ])
 
@@ -106,13 +97,13 @@ export default async ({ req, res, _log, _error }: any) => {
           type: MessageComponentTypes.Button,
           label: i18next.t('application.private.approve'),
           style: ButtonStyles.Success,
-          customId: `enrollment.approve=${application.$id}`
+          customId: `application.approve=${application.$id}`
         },
         {
           type: MessageComponentTypes.Button,
           label: i18next.t('application.private.reject'),
           style: ButtonStyles.Danger,
-          customId: `enrollment.reject=${application.$id}`
+          customId: `application.reject=${application.$id}`
         }
       ], type: MessageComponentTypes.ActionRow }
     ]
