@@ -65,7 +65,15 @@ export default async ({ req, res, _log, _error }: any) => {
   const bot = createBot({ token })
   const threadName = i18next.t('application.private.title', { ign: player.ign })
   const thumbnail = { url: `https://api.mineatar.io/head/${player.$id}?scale=16` }
-  const [thread] = await Promise.all([
+  const [files, thread] = await Promise.all([
+    Promise.all(application.media.map(async (m) => {
+      const [buffer, file] = await Promise.all([
+        storage.getFileView(bucket, m),
+        storage.getFile(bucket, m)
+      ])
+      const blob = new Blob([buffer], { type: file.mimeType })
+      return { blob, name: file.name }
+    })),
     bot.helpers.startThreadWithoutMessage(channel, { type: ChannelTypes.PrivateThread, name: threadName, autoArchiveDuration: 1440 }),
     bot.helpers.sendMessage(channel, { embeds: [{
       color: DECIMAL_COLOR.PRIMARY,
@@ -74,14 +82,6 @@ export default async ({ req, res, _log, _error }: any) => {
       thumbnail
     }]})
   ])
-  const files = await Promise.all(application.media.map(async (m, i) => {
-    const [buffer, file] = await Promise.all([
-      storage.getFileView(bucket, m),
-      storage.getFile(bucket, m)
-    ])
-    const blob = new Blob([buffer], { type: file.mimeType })
-    return { blob, name: i.toString() }
-  }))
   
   await Promise.all([
     databases.createDocument(database, collection, ID.unique(), { application: application.$id, channel: thread.id.toString() }),
