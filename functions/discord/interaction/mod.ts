@@ -41,4 +41,8 @@ export default async ({ req, res, _log, _error }: any) => {
   const bot = createBot({ token: environment.discord.token })
   await bot.helpers.sendMessage(payload.channelId!, { content: message })
   return res.empty()
+  // return res.json({
+  //   type: InteractionResponseTypes.ChannelMessageWithSource,
+  //   data: { content: message }
+  // }, 200)
 }
