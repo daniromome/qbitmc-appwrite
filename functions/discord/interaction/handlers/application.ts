@@ -1,4 +1,3 @@
-// deno-lint-ignore-file no-explicit-any
 import { Client, Databases, Users } from 'https://deno.land/x/appwrite@11.0.0/mod.ts'
 import { EnrollmentApplicationDocument, Preferences } from 'jsr:@qbitmc/common@0.0.6/models'
 import { ApplicationAction } from '../models/action.ts'
