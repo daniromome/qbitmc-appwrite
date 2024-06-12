@@ -1,3 +1,4 @@
+// deno-lint-ignore-file no-explicit-any
 import { Client, Databases, Users } from 'https://deno.land/x/appwrite@11.0.0/mod.ts'
 import { EnrollmentApplicationDocument, Preferences } from 'jsr:@qbitmc/common@0.0.6/models'
 import { ApplicationAction } from '../models/action.ts'
@@ -15,10 +16,13 @@ export class ApplicationHandler implements BaseHandler {
   readonly prefix = Prefix.APPLICATION
   readonly action: ApplicationAction
   readonly value: string
+  readonly log: any
 
-  constructor(action: string, value: string) {
+  constructor(action: string, value: string, log: any) {
     this.action = ApplicationAction[action as keyof typeof ApplicationAction]
+    log(this.action, action)
     this.value = value
+    this.log = log
   }
 
   async handle(environment: Environment, payload: Interaction): Promise<string> {
@@ -35,6 +39,7 @@ export class ApplicationHandler implements BaseHandler {
       )
       const users = new Users(client)
       const applicant = await users.get<Preferences>(application.profile.$id)
+      this.log(JSON.stringify(applicant), getLocale(applicant.prefs.locale))
       i18next.init({
         lng: getLocale(applicant.prefs.locale),
         resources: {
