@@ -27,10 +27,6 @@ export default async ({ req, res, _log, _error }: any) => {
     })
   }
 
-  res.json({
-    type: InteractionResponseTypes.DeferredUpdateMessage
-  })
-
   const customId = payload.data?.customId
 
   if (!customId) throw new Error('Bad Request')
@@ -45,4 +41,8 @@ export default async ({ req, res, _log, _error }: any) => {
   const channel = payload.channelId!
   const bot = createBot({ token: environment.discord.token })
   await bot.helpers.sendMessage(channel, { content: message, messageReference: { failIfNotExists: false, messageId: payload.message!.id }, allowedMentions: { parse: [AllowedMentionsTypes.UserMentions] } })
+  
+  return res.json({
+    type: InteractionResponseTypes.DeferredUpdateMessage
+  })
 }
