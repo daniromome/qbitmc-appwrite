@@ -4,7 +4,7 @@ import { getHandler } from './models/handler.ts'
 import { loadEnvironment } from 'jsr:@qbitmc/deno@0.0.3/appwrite'
 
 // deno-lint-ignore no-explicit-any
-export default async ({ req, res, log, _error }: any) => {
+export default async ({ req, res, _log, _error }: any) => {
   const environment = loadEnvironment()
 
   const signature = req.headers['x-signature-ed25519']
@@ -28,14 +28,13 @@ export default async ({ req, res, log, _error }: any) => {
   }
 
   const customId = payload.data?.customId
-  if (environment.config.env === 'dev') log(customId)
 
   if (!customId) throw new Error('Bad Request')
 
   const [prefix, arg] = customId.split('.')
   const [action, value] = arg.split('=')
 
-  const handler = new(getHandler(prefix))(action, value, log)
+  const handler = new(getHandler(prefix))(action, value)
 
   const message = await handler.handle(environment, payload)
   return res.json({
