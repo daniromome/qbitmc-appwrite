@@ -40,7 +40,7 @@ export class ApplicationHandler implements BaseHandler {
         resources: {
           en: {
             translation: {
-              'application.interaction.unauthorized': 'Sorry {{ name }}, you do not have enough permissions to approve or reject an application.',
+              'application.interaction.unauthorized': 'Sorry <@{{ name }}>, you do not have enough permissions to approve or reject an application.',
               'application.interaction.success': 'The review for this application has been successfully registered, please wait a few minutes for our systems to complete the enrollment process.',
               'application.interaction.failure': 'An error ocurred while processing this application\'s review, please try again later.',
 
@@ -48,7 +48,7 @@ export class ApplicationHandler implements BaseHandler {
           },
           es: {
             translation: {
-              'application.interaction.unauthorized': 'Lo siento {{ name }}, no tienes permisos suficientes para aprobar o rechazar una aplicación.',
+              'application.interaction.unauthorized': 'Lo siento <@{{ name }}>, no tienes permisos suficientes para aprobar o rechazar una aplicación.',
               'application.interaction.success': 'La revisión para esta aplicación ha sido registrada de manera éxitosa, porfavor espera unos minutos para que nuestros sistemas completen el proceso de inscripción',
               'application.interaction.failure': 'Ocurrió un error al procesar la revisión de esta aplicación, porfavor intenta de nuevo más tarde.',
             }
@@ -58,7 +58,7 @@ export class ApplicationHandler implements BaseHandler {
       const allowedRoles = this.roles.map(r => environment.discord.role[r])
       const roles = payload.member?.roles
       if (!roles || !roles.some(r => allowedRoles.includes(r.toString()))) throw new UnauthorizedException(
-        i18next.t('application.interaction.unauthorized', { name: `<@${payload.member?.user?.id}>` })
+        i18next.t('application.interaction.unauthorized', { name: payload.member?.user?.id })
       )
       const { $collectionId, $id } = application.status
       await databases.updateDocument(
