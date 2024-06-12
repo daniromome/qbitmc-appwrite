@@ -1,4 +1,4 @@
-import { verifySignature, Interaction, InteractionResponseTypes } from 'https://deno.land/x/discordeno@18.0.1/mod.ts'
+import { verifySignature, Interaction, InteractionResponseTypes, InteractionTypes } from 'https://deno.land/x/discordeno@18.0.1/mod.ts'
 import { camelize } from 'https://deno.land/x/camelize@2.0.0/mod.ts'
 import { getHandler } from './models/handler.ts'
 import { loadEnvironment } from 'jsr:@qbitmc/deno@0.0.3/appwrite'
@@ -20,6 +20,13 @@ export default async ({ req, res, _log, _error }: any) => {
   if (!isValid) throw new Error('Unauthorized')
 
   const payload = camelize<Interaction>(JSON.parse(body)) as Interaction
+
+  if (payload.type === InteractionTypes.Ping) {
+    return res.json({
+      type: InteractionResponseTypes.Pong
+    })
+  }
+
   const customId = payload.data?.customId
 
   if (!customId) throw new Error('Bad Request')
