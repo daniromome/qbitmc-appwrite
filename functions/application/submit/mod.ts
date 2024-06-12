@@ -90,6 +90,7 @@ export default async ({ req, res, _log, _error }: any) => {
 
   await bot.helpers.sendMessage(thread.id, {
     embeds: [{
+      color: DECIMAL_COLOR.PRIMARY,
       author: { name: player.ign, url: `https://discord.com/users/${application.profile.discord}` },
       fields: [
         { name: i18next.t('application.private.age'), value: application.age.toString() },
