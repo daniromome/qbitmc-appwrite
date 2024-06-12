@@ -16,13 +16,10 @@ export class ApplicationHandler implements BaseHandler {
   readonly prefix = Prefix.APPLICATION
   readonly action: ApplicationAction
   readonly value: string
-  readonly log: any
 
-  constructor(action: string, value: string, log: any) {
-    this.action = ApplicationAction[action as keyof typeof ApplicationAction]
-    log(this.action, action)
+  constructor(action: string, value: string) {
+    this.action = <ApplicationAction> action
     this.value = value
-    this.log = log
   }
 
   async handle(environment: Environment, payload: Interaction): Promise<string> {
@@ -39,9 +36,8 @@ export class ApplicationHandler implements BaseHandler {
       )
       const users = new Users(client)
       const applicant = await users.get<Preferences>(application.profile.$id)
-      this.log(JSON.stringify(applicant), getLocale(applicant.prefs.locale))
       i18next.init({
-        lng: getLocale(applicant.prefs.locale),
+        lng: getLocale(applicant.prefs.locale?.split('-')[0]),
         resources: {
           en: {
             translation: {
