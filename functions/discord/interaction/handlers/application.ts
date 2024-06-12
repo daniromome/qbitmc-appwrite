@@ -58,7 +58,7 @@ export class ApplicationHandler implements BaseHandler {
       const allowedRoles = this.roles.map(r => environment.discord.role[r])
       const roles = payload.member?.roles
       if (!roles || !roles.some(r => allowedRoles.includes(r.toString()))) throw new UnauthorizedException(
-        i18next.t('application.interaction.unauthorized', { name: payload.member?.user?.username })
+        i18next.t('application.interaction.unauthorized', { name: `<@${payload.member?.user?.id}>` })
       )
       const { $collectionId, $id } = application.status
       await databases.updateDocument(

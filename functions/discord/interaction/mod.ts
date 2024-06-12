@@ -1,4 +1,4 @@
-import { verifySignature, Interaction, InteractionResponseTypes, InteractionTypes } from 'https://deno.land/x/discordeno@18.0.1/mod.ts'
+import { verifySignature, Interaction, InteractionResponseTypes, InteractionTypes, createBot } from 'https://deno.land/x/discordeno@18.0.1/mod.ts'
 import { camelize } from 'https://deno.land/x/camelize@2.0.0/mod.ts'
 import { getHandler } from './models/handler.ts'
 import { loadEnvironment } from 'jsr:@qbitmc/deno@0.0.3/appwrite'
@@ -38,8 +38,8 @@ export default async ({ req, res, _log, _error }: any) => {
 
   const message = await handler.handle(environment, payload)
 
-  return res.json({
-    type: InteractionResponseTypes.DeferredUpdateMessage,
-    data: { content: message }
-  }, 200)
+  const channel = payload.channelId!
+  const bot = createBot({ token: environment.discord.token })
+  await bot.helpers.sendMessage(channel, { content: message, messageReference: { failIfNotExists: false, messageId: payload.message!.id } })
+  return res.empty()
 }
