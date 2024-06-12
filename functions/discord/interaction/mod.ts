@@ -35,7 +35,7 @@ export default async ({ req, res, log, _error }: any) => {
   const [prefix, arg] = customId.split('.')
   const [action, value] = arg.split('=')
 
-  const handler = new(getHandler(prefix))(action, value)
+  const handler = new(getHandler(prefix))(action, value, log)
 
   const message = await handler.handle(environment, payload)
   return res.json({
