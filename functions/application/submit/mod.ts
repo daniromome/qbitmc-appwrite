@@ -1,50 +1,11 @@
-import { Client, Users, Models, Storage, Databases, ID } from 'https://deno.land/x/appwrite@11.0.0/mod.ts';
+import { Client, Users, Storage, Databases, ID } from 'https://deno.land/x/appwrite@11.0.0/mod.ts'
 import { createBot, ChannelTypes, MessageComponentTypes, ButtonStyles } from 'https://deno.land/x/discordeno@18.0.1/mod.ts'
+import { EnrollmentApplicationDocument, Preferences, DECIMAL_COLOR } from 'jsr:@qbitmc/common/models'
+import { getLocale } from 'jsr:@qbitmc/common/utils'
 import i18next from "https://esm.sh/i18next@23.11.5"
 
-const COLOR = {
-  PRIMARY: 9161961,
-  TERTIARY: 5398783,
-  SUCCESS: 3003247,
-  WARNING: 16761865,
-  DANGER: 15418458
-} as const
-
-type Locale = 'en' | 'es'
-interface Preferences extends Models.Preferences {
-  nickname?: string
-  locale?: Locale
-  player?: string
-}
-
-interface Player extends Models.Document {
-  ign: string
-}
-
-interface Profile extends Models.Document {
-  customer: string
-  discord: string
-  players: Player[]
-}
-
-interface EnrollmentApplicationStatus {
-  status: boolean
-  application: string
-  channel: string
-}
-
-interface EnrollmentApplication extends Models.Document {
-  age: number
-  reasons: string
-  experience: string
-  rules: boolean
-  media: string[]
-  status: EnrollmentApplicationStatus
-  profile: Profile
-}
-
 // deno-lint-ignore no-explicit-any
-export default async ({ req, res, log, _error }: any) => {
+export default async ({ req, res, _log, _error }: any) => {
   const token = Deno.env.get('DISCORD_TOKEN')
   const channel = Deno.env.get('DISCORD_CHANNEL_APPLICATION')
   const endpoint = Deno.env.get('APPWRITE_ENDPOINT')
@@ -61,7 +22,7 @@ export default async ({ req, res, log, _error }: any) => {
   if (!token) throw new Error('Discord token environment variable is not defined') 
   if (!channel) throw new Error('Discord channel application environment variable is not defined')
   if (!bucket) throw new Error('Appwrite bucket application environment variable is not defined')
-  const application: EnrollmentApplication = req.body
+  const application: EnrollmentApplicationDocument = req.body
   if (!application.$id) throw new Error('Bad Request')
   const client = new Client()
     .setEndpoint(endpoint) 
@@ -107,7 +68,7 @@ export default async ({ req, res, log, _error }: any) => {
   const [thread] = await Promise.all([
     bot.helpers.startThreadWithoutMessage(channel, { type: ChannelTypes.PrivateThread, name: threadName, autoArchiveDuration: 1440 }),
     bot.helpers.sendMessage(channel, { embeds: [{
-      color: COLOR.PRIMARY,
+      color: DECIMAL_COLOR.PRIMARY,
       title: i18next.t('application.public.title'),
       description: i18next.t('application.public.description', { ign: player.ign }),
       thumbnail
@@ -156,9 +117,4 @@ export default async ({ req, res, log, _error }: any) => {
     ]
   })
   return res.empty()
-}
-
-function getLocale(locale?: string): Locale {
-  if (locale === 'es') return 'es'
-  return 'en'
 }
