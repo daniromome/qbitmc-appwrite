@@ -1,58 +1,50 @@
-import { Account, Client, Databases, Models } from 'https://deno.land/x/appwrite@11.0.0/mod.ts'
+import { Account, Client, Databases, Models, Users } from 'https://deno.land/x/appwrite@11.0.0/mod.ts'
+import { loadEnvironment } from 'jsr:@qbitmc/deno/appwrite'
+import { Preferences } from 'jsr:@qbitmc/common'
 
-interface Verification extends Models.Document { uuid: string name: string expires: string }
-
-interface Preferences extends Models.Preferences {
-  nickname?: string
-  locale?: string
-  player?: string
-}
+interface Verification extends Models.Document { uuid: string; name: string; expires: string }
 
 // deno-lint-ignore no-explicit-any
 export default async ({ req, res, log, _error }: any) => {
-  const endpoint = Deno.env.get('APPWRITE_ENDPOINT')
-  const project = Deno.env.get('APPWRITE_FUNCTION_PROJECT_ID')
-  const key = Deno.env.get('APPWRITE_API_KEY')
-  const database = Deno.env.get('APPWRITE_DATABASE_ID')
-  const verificationCollection = Deno.env.get('APPWRITE_COLLECTION_VERIFICATION')
-  const playerCollection = Deno.env.get('APPWRITE_COLLECTION_PLAYER')
-    
-  if (!endpoint) throw new Error('Appwrite endpoint environment variable is not defined') 
-  if (!project) throw new Error('Appwrite project environment variable is not defined')
-  if (!key) throw new Error('Appwrite key environment variable is not defined')
-  if (!database) throw new Error('Database id environment variable is not defined')
-  if (!verificationCollection) throw new Error('Verification collection id environment variable is not defined')
-  if (!playerCollection) throw new Error('Player collection id environment variable is not defined')
+  const environment = loadEnvironment()
 
   const { code } = JSON.parse(req.body)
   if (!code) throw new Error('Verification code was not sent in the request body')
 
   const client = new Client()
-      .setEndpoint(endpoint)
-      .setProject(project)
-      .setKey(key)
+      .setEndpoint(environment.appwrite.api.endpoint)
+      .setProject(environment.appwrite.api.project)
+      .setKey(environment.appwrite.api.key)
+
   const databases = new Databases(client)
 
-  const verification = await databases.getDocument<Verification>(database, verificationCollection, code.toString())
+  const verification = await databases.getDocument<Verification>(
+    environment.appwrite.database,
+    environment.appwrite.collection.verification,
+    code.toString()
+  )
   const expires = new Date(verification.expires)
 
   if (expires.valueOf() < Date.now()) throw new Error('Verification code expired please get a new one')
 
-  const userClient = new Client()
-    .setEndpoint(endpoint)
-    .setProject(project)
-    .setJWT(req.headers['x-appwrite-user-jwt'])
-
-  const account = new Account(userClient)
-
-  const user = await account.get<Preferences>()
+  const users = new Users(client)
+  const user = await users.get<Preferences>(req.headers['x-appwrite-user-id'])
 
   const [player] = await Promise.allSettled([
-    databases.createDocument(database, playerCollection, verification.uuid, { ign: verification.name, profile: user.$id }),
-    databases.deleteDocument(database, verificationCollection, verification.$id)
+    databases.createDocument(
+      environment.appwrite.database,
+      environment.appwrite.collection.player,
+      verification.uuid,
+      { ign: verification.name, profile: user.$id }
+    ),
+    databases.deleteDocument(
+      environment.appwrite.database,
+      environment.appwrite.collection.verification,
+      verification.$id
+    )
   ])
 
-  if (!user.prefs.player) await account.updatePrefs({ ...user.prefs, player: verification.uuid })
+  if (!user.prefs.player) await users.updatePrefs(user.$id, { ...user.prefs, player: verification.uuid })
   
   log(`Successfully verified account for ${verification.name}`)
   return res.json(player)
