@@ -1,0 +1,47 @@
+import { Client, Databases } from 'appwrite'
+import { Server, ServerDocument, VISIBILITY } from '@qbitmc/common';
+import { loadEnvironment } from '@qbitmc/deno/appwrite'
+import { PterodactylResponse } from './model.ts';
+
+// deno-lint-ignore no-explicit-any
+export default async ({ req, res, _log, _error }: any) => {
+  const environment = loadEnvironment()
+
+  const client = new Client()
+      .setEndpoint(environment.appwrite.api.endpoint) 
+      .setProject(environment.appwrite.api.project)
+      .setJWT(req.headers['x-appwrite-user-jwt'])
+
+  const databases = new Databases(client)
+
+  const serverList = await databases.listDocuments<ServerDocument>(
+    environment.appwrite.database,
+    environment.appwrite.collection.server
+  )
+
+  const existingServers = new Set(serverList.documents.map(s => s.$id))
+
+  const request = await fetch(
+    `${environment.pterodactyl.url}/client`,
+    { headers: { Authorization: `Bearer ${environment.pterodactyl.token}` } }
+  )
+
+  const response: PterodactylResponse = await request.json()
+
+  const servers: Server[] = response.data
+    .filter(s => existingServers.has(s.attributes.uuid))
+    .map(s => ({
+      $id: s.attributes.uuid,
+      description: s.attributes.description,
+      game: '',
+      ip: '',
+      loader: '',
+      media: [],
+      name: s.attributes.name,
+      version: '',
+      visibility: VISIBILITY.PRIVATE
+    })
+  )
+
+  return res.json(servers)
+}
