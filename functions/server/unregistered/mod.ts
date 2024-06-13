@@ -1,7 +1,7 @@
-import { Client, Databases } from 'appwrite'
-import { Server, ServerDocument, VISIBILITY } from '@qbitmc/common';
-import { loadEnvironment } from '@qbitmc/deno/appwrite'
-import { PterodactylResponse } from './model.ts';
+import { Client, Databases } from 'https://deno.land/x/appwrite@11.0.0/mod.ts'
+import { Server, ServerDocument, VISIBILITY } from 'jsr:@qbitmc/common@0.0.7'
+import { loadEnvironment } from 'jsr:@qbitmc/deno@0.0.4/appwrite'
+import { PterodactylResponse } from './model.ts'
 
 // deno-lint-ignore no-explicit-any
 export default async ({ req, res, _log, _error }: any) => {

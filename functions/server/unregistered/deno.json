@@ -1,7 +1,0 @@
-{
-  "imports": {
-    "@qbitmc/common": "jsr:@qbitmc/common@^0.0.7",
-    "@qbitmc/deno": "jsr:@qbitmc/deno@^0.0.4",
-    "appwrite": "https://deno.land/x/appwrite@11.0.0/mod.ts"
-  }
-}
