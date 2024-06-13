@@ -5,7 +5,7 @@ import { loadEnvironment } from 'jsr:@qbitmc/deno/appwrite'
 export default async ({ req, res, log, error }: any) => {
   const environment = loadEnvironment()
 
-  const allowedIps = environment.hosts ? environment.hosts.split(',') : []
+  const allowedIps = environment.config.hosts ? environment.config.hosts.split(',') : []
   const ips = (req.headers['x-forwarded-for'] as string).split(', ')
   if (!allowedIps.some(i => ips.includes(i))) throw new Error('Unauthorized')
 
