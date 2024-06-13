@@ -1,5 +1,5 @@
 import { Client, Databases } from 'https://deno.land/x/appwrite@11.0.0/mod.ts'
-import { Server, ServerDocument, VISIBILITY } from 'jsr:@qbitmc/common@0.0.7'
+import { ServerDocument, VISIBILITY } from 'jsr:@qbitmc/common@0.0.8'
 import { loadEnvironment } from 'jsr:@qbitmc/deno@0.0.4/appwrite'
 import { PterodactylResponse } from './model.ts'
 
@@ -34,20 +34,29 @@ export default async ({ req, res, _log, _error }: any) => {
 
   const response: PterodactylResponse = await request.json()
 
-  const servers: Server[] = response.data
-    .filter(s => !existingServers.has(s.attributes.uuid))
-    .map(s => ({
-      $id: s.attributes.uuid,
-      description: s.attributes.description,
-      game: '',
-      ip: '',
-      loader: '',
-      media: [],
-      name: s.attributes.name,
-      version: '',
-      visibility: VISIBILITY.PRIVATE
-    })
+  const servers: ServerDocument[] = await Promise.all(
+    response.data
+      .filter(s => !existingServers.has(s.attributes.uuid))
+      .map(s => databases.createDocument<ServerDocument>(
+        environment.appwrite.database,
+        environment.appwrite.collection.server,
+        s.attributes.uuid,
+        {
+          description: s.attributes.description,
+          game: '',
+          ip: '',
+          loader: '',
+          media: [],
+          name: s.attributes.name,
+          version: '',
+          visibility: VISIBILITY.DRAFT
+        }
+      )
+    )
   )
 
-  return res.json(servers)
+  return res.json([
+    ...serverList.documents.filter(s => s.visibility === VISIBILITY.DRAFT),
+    ...servers
+  ])
 }
