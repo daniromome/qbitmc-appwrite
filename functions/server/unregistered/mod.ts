@@ -1,5 +1,5 @@
 import { Client, Databases } from 'https://deno.land/x/appwrite@11.0.0/mod.ts'
-import { ServerDocument, VISIBILITY } from 'jsr:@qbitmc/common@0.0.8'
+import { ServerDocument, VISIBILITY } from 'jsr:@qbitmc/common@0.0.10'
 import { loadEnvironment } from 'jsr:@qbitmc/deno@0.0.4/appwrite'
 import { PterodactylResponse } from './model.ts'
 
@@ -45,7 +45,6 @@ export default async ({ req, res, _log, _error }: any) => {
           description: s.attributes.description,
           game: '',
           ip: '',
-          loader: '',
           media: [],
           name: s.attributes.name,
           version: '',
