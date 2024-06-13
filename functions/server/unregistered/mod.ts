@@ -23,7 +23,7 @@ export default async ({ req, res, _log, _error }: any) => {
 
   const request = await fetch(
     `${environment.pterodactyl.url}/client`,
-    { headers: { Authorization: `Bearer ${environment.pterodactyl.token}` } }
+    { headers: { Authorization: `Bearer ${environment.pterodactyl.token}`, 'Content-Type': 'application/json' } }
   )
 
   const response: PterodactylResponse = await request.json()
