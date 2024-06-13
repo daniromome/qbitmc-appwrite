@@ -4,7 +4,7 @@ import { loadEnvironment } from 'jsr:@qbitmc/deno@0.0.4/appwrite'
 import { PterodactylResponse } from './model.ts'
 
 // deno-lint-ignore no-explicit-any
-export default async ({ req, res, log, _error }: any) => {
+export default async ({ req, res, _log, _error }: any) => {
   const environment = loadEnvironment()
 
   const client = new Client()
@@ -34,11 +34,8 @@ export default async ({ req, res, log, _error }: any) => {
 
   const response: PterodactylResponse = await request.json()
 
-  log(request.ok)
-  log(response)
-
   const servers: Server[] = response.data
-    .filter(s => existingServers.has(s.attributes.uuid))
+    .filter(s => !existingServers.has(s.attributes.uuid))
     .map(s => ({
       $id: s.attributes.uuid,
       description: s.attributes.description,
