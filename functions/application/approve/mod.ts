@@ -92,7 +92,7 @@ export default async ({ req, res, log, _error }: any) => {
   await Promise.all(
     moddedServers.documents.flatMap(doc => {
       if (doc.mod === 'luckperms') return doc.servers.flatMap(server =>
-        document.application.profile.players.map(player =>
+        players.documents.map(player =>
           fetch(`${environment.pterodactyl.url}/client/servers/${server.$id.split('-').at(0)}/command`, {
             headers,
             body: JSON.stringify({ command: `lp user ${player.ign} parent set qbitor` }),
