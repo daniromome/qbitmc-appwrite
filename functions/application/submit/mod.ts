@@ -1,9 +1,9 @@
 import { Client, Users, Storage, Databases, ID } from 'https://deno.land/x/appwrite@11.0.0/mod.ts'
 import { createBot, ChannelTypes, MessageComponentTypes, ButtonStyles } from 'https://deno.land/x/discordeno@18.0.1/mod.ts'
-import { EnrollmentApplicationDocument, Preferences, DECIMAL_COLOR } from 'jsr:@qbitmc/common/models'
+import { EnrollmentApplicationDocument, Preferences, DECIMAL_COLOR, USER_LABEL } from 'jsr:@qbitmc/common@1.0.0'
 import { getLocale } from 'jsr:@qbitmc/common/utils'
 import i18next from 'https://esm.sh/i18next@23.11.5'
-import { loadEnvironment } from "jsr:@qbitmc/deno@0.0.3/appwrite";
+import { loadEnvironment } from "jsr:@qbitmc/deno/appwrite";
 
 // deno-lint-ignore no-explicit-any
 export default async ({ req, res, _log, _error }: any) => {
@@ -76,7 +76,8 @@ export default async ({ req, res, _log, _error }: any) => {
       ID.unique(),
       { application: application.$id, channel: thread.id.toString() }
     ),
-    bot.helpers.addThreadMember(thread.id, application.profile.discord)
+    bot.helpers.addThreadMember(thread.id, application.profile.discord),
+    users.updateLabels(user.$id, [...user.labels, USER_LABEL.APPLICANT ])
   ])
 
   await bot.helpers.sendMessage(thread.id, {
@@ -108,5 +109,6 @@ export default async ({ req, res, _log, _error }: any) => {
       ], type: MessageComponentTypes.ActionRow }
     ]
   })
+
   return res.empty()
 }
