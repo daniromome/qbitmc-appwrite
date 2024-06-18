@@ -1,6 +1,6 @@
 import { Client, Databases, Models, Query, Users } from 'https://deno.land/x/appwrite@11.0.0/mod.ts'
 import { ServerDocument } from "jsr:@qbitmc/common@0.0.12";
-import { EnrollmentApplicationStatusDocument, VISIBILITY, getLocale, Preferences } from 'jsr:@qbitmc/common@0.0.16'
+import { EnrollmentApplicationStatusDocument, VISIBILITY, getLocale, Preferences, PlayerDocument } from 'jsr:@qbitmc/common@0.0.16'
 import { loadEnvironment } from 'jsr:@qbitmc/deno@0.0.8/appwrite'
 import i18next from 'https://esm.sh/i18next@23.11.5'
 
@@ -32,6 +32,12 @@ export default async ({ req, res, log, _error }: any) => {
     users.get<Preferences>(document.application.profile.$id)
   ])
 
+  const players = await databases.listDocuments<PlayerDocument>(
+    environment.appwrite.database,
+    environment.appwrite.collection.player,
+    [Query.equal('player', document.application.profile.$id)]
+  )
+
   i18next.init({
     lng: getLocale((user.prefs.locale?.split('-')[0])),
     resources: {
@@ -56,12 +62,12 @@ export default async ({ req, res, log, _error }: any) => {
     'Content-Type': 'application/json'
   }
 
-  const ign = document.application.profile.players.find(p => p.$id === user.prefs.player)?.ign
-    || document.application.profile.players[0].ign
+  const ign = players.documents.find(p => p.$id === user.prefs.player)?.ign
+    || players.documents[0].ign
 
   await Promise.all(
     whitelistServerList.documents.flatMap((server) =>
-      document.application.profile.players.flatMap(player => [
+      players.documents.flatMap(player => [
         fetch(`${environment.pterodactyl.url}/client/servers/${server.$id.split('-').at(0)}/command`, {
           headers,
           body: JSON.stringify({ command: `whitelist add ${player.ign}` })
