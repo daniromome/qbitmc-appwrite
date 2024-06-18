@@ -95,7 +95,7 @@ export default async ({ req, res, log, _error }: any) => {
         players.documents.map(player =>
           fetch(`${environment.pterodactyl.url}/client/servers/${server.$id.split('-').at(0)}/command`, {
             headers,
-            body: JSON.stringify({ command: `lp user ${player.ign} parent set qbitor` }),
+            body: JSON.stringify({ command: `lp user ${player.$id} parent set qbitor` }),
             method: 'POST'
           })
         )
