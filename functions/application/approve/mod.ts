@@ -35,7 +35,7 @@ export default async ({ req, res, log, _error }: any) => {
   const players = await databases.listDocuments<PlayerDocument>(
     environment.appwrite.database,
     environment.appwrite.collection.player,
-    [Query.equal('player', document.application.profile.$id)]
+    [Query.equal('profile', document.application.profile.$id)]
   )
 
   i18next.init({
