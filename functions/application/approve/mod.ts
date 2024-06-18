@@ -70,13 +70,15 @@ export default async ({ req, res, log, _error }: any) => {
       players.documents.flatMap(player => [
         fetch(`${environment.pterodactyl.url}/client/servers/${server.$id.split('-').at(0)}/command`, {
           headers,
-          body: JSON.stringify({ command: `whitelist add ${player.ign}` })
+          body: JSON.stringify({ command: `whitelist add ${player.ign}` }),
+          method: 'POST'
         }),
         fetch(`${environment.pterodactyl.url}/client/servers/${server.$id.split('-').at(0)}/command`, {
           headers,
           body: JSON.stringify({
             command: i18next.t(document.approved ? 'tellraw.approved' : 'tellraw.rejected', { ign })
-          })
+          }),
+          method: 'POST'
         }),
       ])
     )
@@ -93,7 +95,8 @@ export default async ({ req, res, log, _error }: any) => {
         document.application.profile.players.map(player =>
           fetch(`${environment.pterodactyl.url}/client/servers/${server.$id.split('-').at(0)}/command`, {
             headers,
-            body: JSON.stringify({ command: `lp user ${player.ign} parent set qbitor` })
+            body: JSON.stringify({ command: `lp user ${player.ign} parent set qbitor` }),
+            method: 'POST'
           })
         )
       )
