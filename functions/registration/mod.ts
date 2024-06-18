@@ -1,9 +1,9 @@
 import { Account, Client, Databases, Permission, Role } from 'https://deno.land/x/appwrite@11.0.0/mod.ts'
 import { RESTGetAPICurrentUserResult } from 'https://deno.land/x/discord_api_types@0.37.87/v10.ts'
-import { loadEnvironment } from 'jsr:@qbitmc/deno@0.0.3/appwrite';
+import { loadEnvironment } from 'jsr:@qbitmc/deno@0.0.7/appwrite';
 
 // deno-lint-ignore no-explicit-any
-export default async ({ req, res, log, _error }: any) => {
+export default async ({ req, res, log, error }: any) => {
   const environment = loadEnvironment()
   
   const { accessToken } = JSON.parse(req.body)
@@ -42,6 +42,23 @@ export default async ({ req, res, log, _error }: any) => {
       log(`User's discord id: ${discordUser.id}`)
     }
     if (discordUser.locale) await account.updatePrefs({ ...account.getPrefs(), locale: discordUser.locale })
+    try {
+      await fetch(
+        `https://discord.com/api/v10/guilds/${environment.discord.guild}/members/${discordUser.id}`,
+        {
+          headers: { Authorization: `Bot ${environment.discord.token}`, 'Content-Type': 'application/json' },
+          method: 'PUT',
+          body: JSON.stringify({ access_token: accessToken })
+        }
+      )
+      if (environment.config.env === 'dev') log(`Successfully joined discord server`)
+    } catch (error) {
+      if (environment.config.env === 'dev') {
+        error(error.message)
+        error('An unexpected error ocurred while trying to join discord server')
+      }
+    }
+    
     const profile = await databases.createDocument(
       environment.appwrite.database,
       environment.appwrite.collection.profile,
