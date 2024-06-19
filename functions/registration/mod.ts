@@ -69,7 +69,7 @@ export default async ({ req, res, log, error }: any) => {
 
     const prefs: Preferences = { ...user.prefs }
     if (discordUser.locale) prefs.locale = discordUser.locale as Locale
-    if (migration) prefs.player = migration.ign
+    if (migration) prefs.player = migration.uuid
     await account.updatePrefs(prefs)
 
     try {
@@ -93,7 +93,7 @@ export default async ({ req, res, log, error }: any) => {
       environment.appwrite.database,
       environment.appwrite.collection.profile,
       user.$id,
-      { discord: discordUser.id, customer  },
+      { discord: discordUser.id, customer },
       [Permission.read(Role.user(user.$id))]
     )
 
