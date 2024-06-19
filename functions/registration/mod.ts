@@ -52,6 +52,7 @@ export default async ({ req, res, log, error }: any) => {
       })
       const customerResponse = await customerRequest.json()
       customer = customerResponse.id
+      log(customer)
     } catch (_e) {
       error('An error ocurred while trying to create customer')
     }
@@ -101,7 +102,7 @@ export default async ({ req, res, log, error }: any) => {
         environment.appwrite.database,
         environment.appwrite.collection.player,
         migration.uuid,
-        { ign: migration.ign }
+        { ign: migration.ign, profile: profile.$id }
       )
     }
 
