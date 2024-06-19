@@ -1,7 +1,6 @@
 import { Account, Client, Databases, Permission, Role } from 'https://deno.land/x/appwrite@11.0.0/mod.ts'
 import { RESTGetAPICurrentUserResult } from 'https://deno.land/x/discord_api_types@0.37.87/v10.ts'
-import { loadEnvironment } from 'jsr:@qbitmc/deno@1.2.0/appwrite'
-import { Locale, MigrationDocument, Preferences } from 'jsr:@qbitmc/common'
+import { loadEnvironment } from 'jsr:@qbitmc/deno@0.0.7/appwrite';
 
 // deno-lint-ignore no-explicit-any
 export default async ({ req, res, log, error }: any) => {
@@ -42,36 +41,7 @@ export default async ({ req, res, log, error }: any) => {
       log(`User's locale: ${discordUser.locale}`)
       log(`User's discord id: ${discordUser.id}`)
     }
-    let customer: string | undefined = undefined
-    try {
-      const customerRequest = await fetch('https://api.stripe.com/v1/customers', {
-        headers: {
-          Authorization: `Bearer ${environment.stripe.secret}`
-        },
-        method: 'POST'
-      })
-      const customerResponse = await customerRequest.json()
-      customer = customerResponse.id
-      log(customer)
-    } catch (_e) {
-      error('An error ocurred while trying to create customer')
-    }
-    let migration: MigrationDocument | undefined = undefined
-    try {
-      migration = await databases.getDocument<MigrationDocument>(
-        environment.appwrite.database,
-        environment.appwrite.collection.migration,
-        discordUser.id
-      )
-    } catch (_e) {
-      log('No migration pending for this user')
-    }
-
-    const prefs: Preferences = { ...user.prefs }
-    if (discordUser.locale) prefs.locale = discordUser.locale as Locale
-    if (migration) prefs.player = migration.uuid
-    await account.updatePrefs(prefs)
-
+    if (discordUser.locale) await account.updatePrefs({ ...account.getPrefs(), locale: discordUser.locale })
     try {
       await fetch(
         `https://discord.com/api/v10/guilds/${environment.discord.guild}/members/${discordUser.id}`,
@@ -82,9 +52,9 @@ export default async ({ req, res, log, error }: any) => {
         }
       )
       if (environment.config.env === 'dev') log(`Successfully joined discord server`)
-    } catch (e) {
+    } catch (error) {
       if (environment.config.env === 'dev') {
-        error(e.message)
+        error(error.message)
         error('An unexpected error ocurred while trying to join discord server')
       }
     }
@@ -93,19 +63,9 @@ export default async ({ req, res, log, error }: any) => {
       environment.appwrite.database,
       environment.appwrite.collection.profile,
       user.$id,
-      { discord: discordUser.id, customer },
+      { discord: discordUser.id },
       [Permission.read(Role.user(user.$id))]
     )
-
-    if (migration) {
-      await databases.createDocument(
-        environment.appwrite.database,
-        environment.appwrite.collection.player,
-        migration.uuid,
-        { ign: migration.ign, profile: profile.$id }
-      )
-    }
-
     return res.json(profile)
   }
 }
