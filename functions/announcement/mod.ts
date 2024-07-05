@@ -30,9 +30,11 @@ export default async ({ _req, res, _log, _error }: any) => {
   await Promise.all(
     serverList.documents.flatMap(server => {
       const broadcastedDocument = server.metadata.find(m => m.key === 'broadcasted')
-      if (!broadcastedDocument) return Promise.reject('No broadcasted document found')
+      if (!broadcastedDocument) return [Promise.reject('No broadcasted document found')]
       const broadcasted: string[] = JSON.parse(broadcastedDocument.value) 
-      const en = server.metadata.filter(m => m.key === 'announcement_en' && !broadcasted.includes(m.$id))
+      const enAll = server.metadata.filter(m => m.key === 'announcement_en')
+      if (broadcasted.length === enAll.length) broadcasted.splice(0, broadcasted.length)
+      const en = enAll.filter(m => !broadcasted.includes(m.$id))
       const es = server.metadata.filter(m => m.key === 'announcement_es' && !broadcasted.includes(m.$id))
       const broadcastEn = en[Math.floor(Math.random() * en.length)]
       const broadcastEs = es[Math.floor(Math.random() * es.length)]
