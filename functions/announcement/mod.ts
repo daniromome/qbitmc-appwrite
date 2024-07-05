@@ -41,8 +41,6 @@ export default async ({ _req, res, _log, _error }: any) => {
         const broadcastEs = es[Math.floor(Math.random() * es.length - 1)]
         broadcasted.push(broadcastEn.$id)
         broadcasted.push(broadcastEs.$id)
-        const messageEn = JSON.stringify(broadcastEn.value)
-        const messageEs = JSON.stringify(broadcastEs.value)
         return [
           databases.updateDocument(
             environment.appwrite.database,
@@ -52,12 +50,12 @@ export default async ({ _req, res, _log, _error }: any) => {
           ),
           fetch(`${environment.pterodactyl.url}/client/servers/${server.$id.split('-').at(0)}/command`, {
             headers,
-            body: JSON.stringify({ command: `tellraw @a[team=en] ${messageEn.substring(1, messageEn.length - 1)}` }),
+            body: JSON.stringify({ command: 'tellraw @a[team=en] ' + broadcastEn.value }),
             method: 'POST'
           }),
           fetch(`${environment.pterodactyl.url}/client/servers/${server.$id.split('-').at(0)}/command`, {
             headers,
-            body: JSON.stringify({ command: `tellraw @a[team=es] ${messageEs.substring(1, messageEs.length - 1)}` }),
+            body: JSON.stringify({ command: 'tellraw @a[team=es] ' + broadcastEs.value }),
             method: 'POST'
           })
         ]
