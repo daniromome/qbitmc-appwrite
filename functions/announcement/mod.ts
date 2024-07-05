@@ -28,37 +28,38 @@ export default async ({ _req, res, _log, _error }: any) => {
   }
 
   await Promise.all(
-    serverList.documents.flatMap(server => {
-      const broadcastedDocument = server.metadata.find(m => m.key === 'broadcasted')
-      if (!broadcastedDocument) return [Promise.reject('No broadcasted document found')]
-      const broadcasted: string[] = JSON.parse(broadcastedDocument.value) 
-      const enAll = server.metadata.filter(m => m.key === 'announcement_en')
-      if (broadcasted.length === enAll.length) broadcasted.splice(0, broadcasted.length)
-      const en = enAll.filter(m => !broadcasted.includes(m.$id))
-      const es = server.metadata.filter(m => m.key === 'announcement_es' && !broadcasted.includes(m.$id))
-      const broadcastEn = en[Math.floor(Math.random() * en.length)]
-      const broadcastEs = es[Math.floor(Math.random() * es.length)]
-      broadcasted.push(broadcastEn.$id)
-      broadcasted.push(broadcastEs.$id)
-      return [
-        databases.updateDocument(
-          environment.appwrite.database,
-          broadcastedDocument.$collectionId,
-          broadcastedDocument.$id,
-          { value: JSON.stringify(broadcasted) }
-        ),
-        fetch(`${environment.pterodactyl.url}/client/servers/${server.$id.split('-').at(0)}/command`, {
-          headers,
-          body: JSON.stringify({ command: `tellraw @a[team=en] ${broadcastEn}` }),
-          method: 'POST'
-        }),
-        fetch(`${environment.pterodactyl.url}/client/servers/${server.$id.split('-').at(0)}/command`, {
-          headers,
-          body: JSON.stringify({ command: `tellraw @a[team=es] ${broadcastEs}` }),
-          method: 'POST'
-        })
-      ]
-    })
+    serverList.documents
+      .filter(server => !!server.metadata.some(m => m.key === 'announcement_en'))
+      .flatMap(server => {
+        const broadcastedDocument = server.metadata.find(m => m.key === 'broadcasted')
+        const broadcasted: string[] = JSON.parse(broadcastedDocument!.value) 
+        const enAll = server.metadata.filter(m => m.key === 'announcement_en')
+        if (broadcasted.length === enAll.length) broadcasted.splice(0, broadcasted.length)
+        const en = enAll.filter(m => !broadcasted.includes(m.$id))
+        const es = server.metadata.filter(m => m.key === 'announcement_es' && !broadcasted.includes(m.$id))
+        const broadcastEn = en[Math.floor(Math.random() * en.length - 1)]
+        const broadcastEs = es[Math.floor(Math.random() * es.length - 1)]
+        broadcasted.push(broadcastEn.$id)
+        broadcasted.push(broadcastEs.$id)
+        return [
+          databases.updateDocument(
+            environment.appwrite.database,
+            broadcastedDocument!.$collectionId,
+            broadcastedDocument!.$id,
+            { value: JSON.stringify(broadcasted) }
+          ),
+          fetch(`${environment.pterodactyl.url}/client/servers/${server.$id.split('-').at(0)}/command`, {
+            headers,
+            body: JSON.stringify({ command: `tellraw @a[team=en] ${broadcastEn}` }),
+            method: 'POST'
+          }),
+          fetch(`${environment.pterodactyl.url}/client/servers/${server.$id.split('-').at(0)}/command`, {
+            headers,
+            body: JSON.stringify({ command: `tellraw @a[team=es] ${broadcastEs}` }),
+            method: 'POST'
+          })
+        ]
+      })
   )
 
   return res.empty()
