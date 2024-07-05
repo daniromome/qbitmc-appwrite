@@ -38,8 +38,10 @@ export default async ({ req, res, log, _error }: any) => {
     [Query.equal('profile', document.application.profile.$id)]
   )
 
+  const locale = getLocale((user.prefs.locale?.split('-')[0]))
+
   i18next.init({
-    lng: getLocale((user.prefs.locale?.split('-')[0])),
+    lng: locale,
     resources: {
       en: {
         translation: {
@@ -71,6 +73,11 @@ export default async ({ req, res, log, _error }: any) => {
         fetch(`${environment.pterodactyl.url}/client/servers/${server.$id.split('-').at(0)}/command`, {
           headers,
           body: JSON.stringify({ command: `whitelist add ${player.ign}` }),
+          method: 'POST'
+        }),
+        fetch(`${environment.pterodactyl.url}/client/servers/${server.$id.split('-').at(0)}/command`, {
+          headers,
+          body: JSON.stringify({ command: `team join ${locale} ${player.ign}` }),
           method: 'POST'
         }),
         fetch(`${environment.pterodactyl.url}/client/servers/${server.$id.split('-').at(0)}/command`, {
