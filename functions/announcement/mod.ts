@@ -50,12 +50,12 @@ export default async ({ _req, res, _log, _error }: any) => {
           ),
           fetch(`${environment.pterodactyl.url}/client/servers/${server.$id.split('-').at(0)}/command`, {
             headers,
-            body: JSON.stringify({ command: `tellraw @a[team=en] ${broadcastEn.value}` }),
+            body: JSON.stringify({ command: `tellraw @a[team=en] ${JSON.stringify(broadcastEn.value)}` }),
             method: 'POST'
           }),
           fetch(`${environment.pterodactyl.url}/client/servers/${server.$id.split('-').at(0)}/command`, {
             headers,
-            body: JSON.stringify({ command: `tellraw @a[team=es] ${broadcastEs.value}` }),
+            body: JSON.stringify({ command: `tellraw @a[team=es] ${JSON.stringify(broadcastEs.value)}` }),
             method: 'POST'
           })
         ]
