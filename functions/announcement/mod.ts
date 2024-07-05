@@ -32,7 +32,7 @@ export default async ({ _req, res, _log, _error }: any) => {
       .flatMap<Promise<unknown>[]>(server => {
         if (server.metadata.length === 0) return []
         const messages = server.metadata.reduce((acc, cur) => {
-          if (cur.key === 'broadcasted') acc['broadcasted'] = JSON.parse(cur.value)
+          if (cur.key === 'broadcasted') acc['broadcasted'] = cur
           if (!cur.key.startsWith('announcement')) return acc
           const locale = getLocale(cur.key.split('_').at(-1))
           if (!acc[locale]) acc[locale] = [cur]
