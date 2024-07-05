@@ -1,5 +1,5 @@
 import { Client, Databases, Query } from 'https://deno.land/x/appwrite@11.0.0/mod.ts'
-import { ServerDocument, VISIBILITY } from 'jsr:@qbitmc/common@1.2.0';
+import { Locale, MetadataDocument, ServerDocument, VISIBILITY, getLocale } from 'jsr:@qbitmc/common@1.2.0';
 import { loadEnvironment } from 'jsr:@qbitmc/deno@1.2.0/appwrite'
 
 // deno-lint-ignore no-explicit-any
@@ -29,34 +29,38 @@ export default async ({ _req, res, _log, _error }: any) => {
 
   await Promise.all(
     serverList.documents
-      .filter(server => !!server.metadata.some(m => m.key === 'announcement_en'))
-      .flatMap(server => {
-        const broadcastedDocument = server.metadata.find(m => m.key === 'broadcasted')
-        const broadcasted: string[] = JSON.parse(broadcastedDocument!.value) 
-        const enAll = server.metadata.filter(m => m.key === 'announcement_en')
-        const esAll = server.metadata.filter(m => m.key === 'announcement_es')
-        if (broadcasted.length === enAll.length + esAll.length) broadcasted.splice(0, broadcasted.length)
-        const en = enAll.filter(m => !broadcasted.includes(m.$id))
-        const es = esAll.filter(m => !broadcasted.includes(m.$id))
-        const broadcastEn = en[Math.floor(Math.random() * en.length - 1)]
-        const broadcastEs = es[Math.floor(Math.random() * es.length - 1)]
-        broadcasted.push(broadcastEn.$id)
-        broadcasted.push(broadcastEs.$id)
+      .flatMap<Promise<unknown>[]>(server => {
+        if (server.metadata.length === 0) return []
+        const messages = server.metadata.reduce((acc, cur) => {
+          if (cur.key === 'broadcasted') acc['broadcasted'] = JSON.parse(cur.value)
+          if (!cur.key.startsWith('announcement')) return acc
+          const locale = getLocale(cur.key.split('_').at(-1))
+          if (!acc[locale]) acc[locale] = [cur]
+          else acc[locale].push(cur)
+          return acc
+        }, {} as { [k in Locale]: MetadataDocument[] } & { 'broadcasted': MetadataDocument })
+        if (!messages.broadcasted) return []
+        const broadcastedAnnouncements: string[] = JSON.parse(messages.broadcasted.value)
+        const isCompletedCycle = messages.es.length + messages.en.length === broadcastedAnnouncements.length
+        const announcementsEn = isCompletedCycle ? messages.en : messages.en.filter(m => broadcastedAnnouncements.includes(m.$id))
+        const announcementsEs = isCompletedCycle ? messages.es : messages.es.filter(m => broadcastedAnnouncements.includes(m.$id))
+        const announcementEn = announcementsEn[Math.floor(Math.random() * announcementsEn.length)]
+        const announcementEs = announcementsEs[Math.floor(Math.random() * announcementsEs.length)]
         return [
           databases.updateDocument(
             environment.appwrite.database,
-            broadcastedDocument!.$collectionId,
-            broadcastedDocument!.$id,
-            { value: JSON.stringify(broadcasted) }
+            messages.broadcasted.$collectionId,
+            messages.broadcasted.$id,
+            { value: JSON.stringify(isCompletedCycle ? [...broadcastedAnnouncements, announcementEn.$id, announcementEs.$id] : []) }
           ),
           fetch(`${environment.pterodactyl.url}/client/servers/${server.$id.split('-').at(0)}/command`, {
             headers,
-            body: JSON.stringify({ command: 'tellraw @a[team=en] ' + broadcastEn.value }),
+            body: JSON.stringify({ command: announcementEn.value }),
             method: 'POST'
           }),
           fetch(`${environment.pterodactyl.url}/client/servers/${server.$id.split('-').at(0)}/command`, {
             headers,
-            body: JSON.stringify({ command: 'tellraw @a[team=es] ' + broadcastEs.value }),
+            body: JSON.stringify({ command: announcementEs.value }),
             method: 'POST'
           })
         ]
