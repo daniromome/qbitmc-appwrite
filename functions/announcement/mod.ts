@@ -34,9 +34,10 @@ export default async ({ _req, res, _log, _error }: any) => {
         const broadcastedDocument = server.metadata.find(m => m.key === 'broadcasted')
         const broadcasted: string[] = JSON.parse(broadcastedDocument!.value) 
         const enAll = server.metadata.filter(m => m.key === 'announcement_en')
-        if (broadcasted.length === enAll.length) broadcasted.splice(0, broadcasted.length)
+        const esAll = server.metadata.filter(m => m.key === 'announcement_es')
+        if (broadcasted.length === enAll.length + esAll.length) broadcasted.splice(0, broadcasted.length)
         const en = enAll.filter(m => !broadcasted.includes(m.$id))
-        const es = server.metadata.filter(m => m.key === 'announcement_es' && !broadcasted.includes(m.$id))
+        const es = esAll.filter(m => !broadcasted.includes(m.$id))
         const broadcastEn = en[Math.floor(Math.random() * en.length - 1)]
         const broadcastEs = es[Math.floor(Math.random() * es.length - 1)]
         broadcasted.push(broadcastEn.$id)
