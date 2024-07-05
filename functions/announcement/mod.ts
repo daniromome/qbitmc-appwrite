@@ -37,8 +37,8 @@ export default async ({ _req, res, _log, _error }: any) => {
         if (broadcasted.length === enAll.length) broadcasted.splice(0, broadcasted.length)
         const en = enAll.filter(m => !broadcasted.includes(m.$id))
         const es = server.metadata.filter(m => m.key === 'announcement_es' && !broadcasted.includes(m.$id))
-        const broadcastEn = en[Math.floor(Math.random() * en.length - 1)]
-        const broadcastEs = es[Math.floor(Math.random() * es.length - 1)]
+        const broadcastEn = JSON.stringify(en[Math.floor(Math.random() * en.length - 1)])
+        const broadcastEs = JSON.stringify(es[Math.floor(Math.random() * es.length - 1)])
         broadcasted.push(broadcastEn.$id)
         broadcasted.push(broadcastEs.$id)
         return [
@@ -50,12 +50,12 @@ export default async ({ _req, res, _log, _error }: any) => {
           ),
           fetch(`${environment.pterodactyl.url}/client/servers/${server.$id.split('-').at(0)}/command`, {
             headers,
-            body: JSON.stringify({ command: `tellraw @a[team=en] ${JSON.parse(broadcastEn.value)}` }),
+            body: JSON.stringify({ command: `tellraw @a[team=en] ${broadcastEn.substring(1, broadcastEn.length - 1)}` }),
             method: 'POST'
           }),
           fetch(`${environment.pterodactyl.url}/client/servers/${server.$id.split('-').at(0)}/command`, {
             headers,
-            body: JSON.stringify({ command: `tellraw @a[team=es] ${JSON.parse(broadcastEs.value)}` }),
+            body: JSON.stringify({ command: `tellraw @a[team=es] ${broadcastEs.substring(1, broadcastEs.length - 1)}` }),
             method: 'POST'
           })
         ]
