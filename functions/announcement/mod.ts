@@ -53,7 +53,7 @@ export default async ({ _req, res, log, _error }: any) => {
             environment.appwrite.database,
             messages.broadcasted.$collectionId,
             messages.broadcasted.$id,
-            { value: JSON.stringify(isCompletedCycle ? [...broadcastedAnnouncements, announcementEn.$id, announcementEs.$id] : []) }
+            { value: JSON.stringify(isCompletedCycle ? [] : [...broadcastedAnnouncements, announcementEn.$id, announcementEs.$id]) }
           ),
           fetch(`${environment.pterodactyl.url}/client/servers/${server.$id.split('-').at(0)}/command`, {
             headers,
