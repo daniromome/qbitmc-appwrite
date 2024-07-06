@@ -42,8 +42,8 @@ export default async ({ _req, res, log, _error }: any) => {
         if (!messages.broadcasted || messages.en.length === 0 || messages.es.length === 0) return []
         const broadcastedAnnouncements: string[] = JSON.parse(messages.broadcasted.value)
         const isCompletedCycle = messages.es.length + messages.en.length === broadcastedAnnouncements.length
-        const announcementsEn = isCompletedCycle ? messages.en : messages.en.filter(m => broadcastedAnnouncements.includes(m.$id))
-        const announcementsEs = isCompletedCycle ? messages.es : messages.es.filter(m => broadcastedAnnouncements.includes(m.$id))
+        const announcementsEn = isCompletedCycle ? messages.en : messages.en.filter(m => !broadcastedAnnouncements.includes(m.$id))
+        const announcementsEs = isCompletedCycle ? messages.es : messages.es.filter(m => !broadcastedAnnouncements.includes(m.$id))
         const enIndex = Math.floor(Math.random() * announcementsEn.length)
         const esIndex = Math.floor(Math.random() * announcementsEs.length)
         const announcementEn = announcementsEn[enIndex]
