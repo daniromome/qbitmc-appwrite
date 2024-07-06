@@ -33,7 +33,7 @@ export default async ({ _req, res, _log, _error }: any) => {
         if (server.metadata.length === 0) return []
         const messages = server.metadata.reduce((acc, cur) => {
           if (cur.key === 'broadcasted') acc['broadcasted'] = cur
-          if (cur.key !== 'announcement_en' && cur.key !== 'announcement_es') return acc
+          if (!(cur.key === 'announcement_en' || cur.key === 'announcement_es')) return acc
           const locale = getLocale(cur.key.split('_').at(-1))
           if (!acc[locale]) acc[locale] = [cur]
           else acc[locale].push(cur)
