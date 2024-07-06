@@ -31,6 +31,7 @@ export default async ({ _req, res, log, _error }: any) => {
     serverList.documents
       .flatMap<Promise<unknown>[]>(server => {
         if (server.metadata.length === 0) return []
+        log(JSON.stringify(server.metadata))
         const messages = server.metadata.reduce((acc, cur) => {
           if (cur.key === 'broadcasted') acc['broadcasted'] = cur
           if (!cur.key.startsWith('announcement')) return acc
