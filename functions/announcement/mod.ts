@@ -39,21 +39,15 @@ export default async ({ _req, res, log, _error }: any) => {
           else acc[locale].push(cur)
           return acc
         }, {} as { [k in Locale]: MetadataDocument[] } & { 'broadcasted': MetadataDocument })
-        if (!messages.broadcasted) return []
+        if (!messages.broadcasted || messages.en.length === 0 || messages.es.length === 0) return []
         const broadcastedAnnouncements: string[] = JSON.parse(messages.broadcasted.value)
         const isCompletedCycle = messages.es.length + messages.en.length === broadcastedAnnouncements.length
         const announcementsEn = isCompletedCycle ? messages.en : messages.en.filter(m => broadcastedAnnouncements.includes(m.$id))
         const announcementsEs = isCompletedCycle ? messages.es : messages.es.filter(m => broadcastedAnnouncements.includes(m.$id))
-        log(`${announcementsEn.length} Announcements`)
-        log(`${announcementsEs.length} Announcements`)
         const enIndex = Math.floor(Math.random() * announcementsEn.length)
         const esIndex = Math.floor(Math.random() * announcementsEs.length)
-        log(`Index en ${enIndex}`)
-        log(`Index es ${esIndex}`)
         const announcementEn = announcementsEn[enIndex]
-        log(`Announcing ${announcementEn.value} to english locale users in the server`)
         const announcementEs = announcementsEs[esIndex]
-        log(`Announcing ${announcementEs.value} to english locale users in the server`)
         return [
           databases.updateDocument(
             environment.appwrite.database,
