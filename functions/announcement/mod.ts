@@ -44,10 +44,14 @@ export default async ({ _req, res, log, _error }: any) => {
         const isCompletedCycle = messages.es.length + messages.en.length === broadcastedAnnouncements.length
         const announcementsEn = isCompletedCycle ? messages.en : messages.en.filter(m => broadcastedAnnouncements.includes(m.$id))
         const announcementsEs = isCompletedCycle ? messages.es : messages.es.filter(m => broadcastedAnnouncements.includes(m.$id))
+        log(`${announcementsEn.length} Announcements`)
+        log(`${announcementsEs.length} Announcements`)
         const enIndex = Math.floor(Math.random() * announcementsEn.length)
+        const esIndex = Math.floor(Math.random() * announcementsEs.length)
+        log(`Index en ${enIndex}`)
+        log(`Index es ${esIndex}`)
         const announcementEn = announcementsEn[enIndex]
         log(`Announcing ${announcementEn.value} to english locale users in the server`)
-        const esIndex = Math.floor(Math.random() * announcementsEs.length)
         const announcementEs = announcementsEs[esIndex]
         log(`Announcing ${announcementEs.value} to english locale users in the server`)
         return [
