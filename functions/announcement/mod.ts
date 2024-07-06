@@ -3,7 +3,7 @@ import { Locale, MetadataDocument, ServerDocument, VISIBILITY, getLocale } from 
 import { loadEnvironment } from 'jsr:@qbitmc/deno@1.2.0/appwrite'
 
 // deno-lint-ignore no-explicit-any
-export default async ({ _req, res, log, _error }: any) => {
+export default async ({ _req, res, _log, _error }: any) => {
   const environment = loadEnvironment()
 
   const client = new Client()
@@ -31,10 +31,9 @@ export default async ({ _req, res, log, _error }: any) => {
     serverList.documents
       .flatMap<Promise<unknown>[]>(server => {
         if (server.metadata.length === 0) return []
-        log(JSON.stringify(server.metadata))
         const messages = server.metadata.reduce((acc, cur) => {
           if (cur.key === 'broadcasted') acc['broadcasted'] = cur
-          if (!cur.key.startsWith('announcement')) return acc
+          if (cur.key !== 'announcement_en' && cur.key !== 'announcement_es') return acc
           const locale = getLocale(cur.key.split('_').at(-1))
           if (!acc[locale]) acc[locale] = [cur]
           else acc[locale].push(cur)
