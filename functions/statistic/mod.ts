@@ -101,7 +101,7 @@ export default async ({ _req, res, log, error }: any) => {
       const latestStats = Object.entries(statResponse.stats).flatMap(([type, stat]) => {
         return Object.entries(stat).map(([name, value]) => ({ type, name, value, player, server: server.$id }))
       })
-      const updateStats = latestStats.filter(stat => storedStats[stat.type][stat.name].value !== stat.value)
+      const updateStats = latestStats.filter(stat => !storedStats[stat.type] || storedStats[stat.type][stat.name]?.value !== stat.value)
       const permissions = [
         Permission.read(Role.label(USER_LABEL.FAMILY)),
         Permission.read(Role.label(USER_LABEL.SUPPORTER)),
