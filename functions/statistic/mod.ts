@@ -1,5 +1,5 @@
 import { Client, Databases, ID, Permission, Query, Role } from 'https://deno.land/x/appwrite@11.0.0/mod.ts'
-import { ServerDocument, VISIBILITY, StatisticDocument, USER_LABEL } from 'jsr:@qbitmc/common@1.3.2'
+import { ServerDocument, VISIBILITY, StatisticDocument, USER_LABEL, PlayerDocument } from 'jsr:@qbitmc/common@1.3.2'
 import { loadEnvironment } from 'jsr:@qbitmc/deno@1.3.0/appwrite'
 
 interface PterodactylFile {
@@ -38,11 +38,19 @@ export default async ({ _req, res, log, error }: any) => {
   
   const databases = new Databases(client)
 
-  const serverList = await databases.listDocuments<ServerDocument>(
-    environment.appwrite.database,
-    environment.appwrite.collection.server,
-    [Query.equal('visibility', VISIBILITY.PRIVATE)]
-  )
+  const [serverList, playerList] = await Promise.all([
+    databases.listDocuments<ServerDocument>(
+      environment.appwrite.database,
+      environment.appwrite.collection.server,
+      [Query.equal('visibility', VISIBILITY.PRIVATE)]
+    ),
+    databases.listDocuments<PlayerDocument>(
+      environment.appwrite.database,
+      environment.appwrite.collection.player
+    )
+  ])
+
+  const players = playerList.documents.map(doc => doc.$id)
 
   const servers = serverList.documents.filter(server => server.metadata.some(m => m.key === 'statistics' && m.value === 'true'))
 
@@ -68,7 +76,7 @@ export default async ({ _req, res, log, error }: any) => {
       headers: { Authorization: `Bearer ${environment.pterodactyl.token}`, 'Accept': 'application/json' }
     })
     const listFilesResponse = await listFilesRequest.json() as PterodactylListFilesResponse
-    const statisticFiles = listFilesResponse.data.filter(file => file.attributes.name.endsWith('json'))
+    const statisticFiles = listFilesResponse.data.filter(file => players.includes(file.attributes.name.split('.')[0]))
     if (statisticFiles.length === 0) {
       error(`Server ${server.name} does not yet have any statistics in /${world}/stats`)
       return
@@ -82,7 +90,7 @@ export default async ({ _req, res, log, error }: any) => {
           environment.appwrite.collection.statistic,
           [Query.equal('player', player)]
         ),
-        fetch(`${environment.pterodactyl.url}/client/servers/${server.$id}/files/contents?file=/${world}/${statFile.attributes.name}`, { headers })
+        fetch(`${environment.pterodactyl.url}/client/servers/${server.$id}/files/contents?file=/${world}/stats/${statFile.attributes.name}`, { headers })
       ])
       const statResponse = await statRequest.json() as StatisticFile
       const storedStats = statDocuments.documents.reduce((acc, cur) => {
