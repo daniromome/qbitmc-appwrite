@@ -109,7 +109,7 @@ export default async ({ _req, res, log, error }: any) => {
         Permission.read(Role.label(USER_LABEL.ADMIN))
       ]
       await Promise.all(updateStats.flatMap(stat => {
-        const storedStat = storedStats[stat.type][stat.name]
+        const storedStat = storedStats[stat.type] ? storedStats[stat.type][stat.name] : undefined
         return storedStat
           ? [
             databases.updateDocument(
