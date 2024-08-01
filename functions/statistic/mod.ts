@@ -108,33 +108,23 @@ export default async ({ _req, res, log, error }: any) => {
         Permission.read(Role.label(USER_LABEL.MOD)),
         Permission.read(Role.label(USER_LABEL.ADMIN))
       ]
-      await Promise.all(updateStats.flatMap(stat => {
+      await Promise.all(updateStats.map(stat => {
         const storedStat = storedStats[stat.type] ? storedStats[stat.type][stat.name] : undefined
         return storedStat
-          ? [
-            databases.updateDocument(
+          ? databases.updateDocument(
               environment.appwrite.database,
               environment.appwrite.collection.statistic,
               storedStat.id,
               stat,
               permissions
-            ),
-            databases.createDocument(
-              environment.appwrite.database,
-              environment.appwrite.collection.statisticHistory,
-              ID.unique(),
-              { stat: storedStat.id, value: storedStat.value }
             )
-          ]
-          : [
-            databases.createDocument(
+          : databases.createDocument(
               environment.appwrite.database,
               environment.appwrite.collection.statistic,
               ID.unique(),
               stat,
               permissions
             )
-          ]
       }))
     }
   }
