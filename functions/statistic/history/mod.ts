@@ -13,7 +13,7 @@ export default async ({ _req, res, log, error }: any) => {
   
   const databases = new Databases(client)
 
-  const yesterday = Date.now() - 90000000
+  const yesterday = new Date(Date.now() - 90000000).toISOString()
 
   const [statistics, history] = await Promise.all([
     databases.listDocuments<StatisticDocument>(
