@@ -1,6 +1,40 @@
-import { Client, Databases, ID, Permission, Query, Role } from 'https://deno.land/x/appwrite@11.0.0/mod.ts'
+import { Client, Databases, ID, Permission, Query, Role, Models } from 'https://deno.land/x/appwrite@11.0.0/mod.ts'
 import { StatisticDocument, USER_LABEL, StatisticHistoryDocument } from 'jsr:@qbitmc/common@1.3.2'
 import { loadEnvironment } from 'jsr:@qbitmc/deno@1.3.0/appwrite'
+
+export async function getAllDocuments<T extends Models.Document>(
+  databases: Databases,
+  databaseId: string,
+  collectionId: string,
+  queries: string[] = []
+): Promise<T[]> {
+  const limit = 100;
+  let allDocuments: T[] = [];
+  let lastId: string | undefined = undefined;
+
+  while (true) {
+    const currentQueries = [...queries, Query.limit(limit)];
+    if (lastId) {
+      currentQueries.push(Query.cursorAfter(lastId));
+    }
+
+    const response = await databases.listDocuments<T>(
+      databaseId,
+      collectionId,
+      currentQueries
+    );
+
+    allDocuments = allDocuments.concat(response.documents);
+
+    if (response.documents.length < limit) {
+      break;
+    }
+
+    lastId = response.documents[response.documents.length - 1].$id;
+  }
+
+  return allDocuments;
+}
 
 // deno-lint-ignore no-explicit-any
 export default async ({ _req, res, log, error }: any) => {
@@ -13,27 +47,23 @@ export default async ({ _req, res, log, error }: any) => {
   
   const databases = new Databases(client)
 
-  const yesterday = new Date(Date.now() - 90000000).toISOString()
+  const statistics = await getAllDocuments<StatisticDocument>(
+    databases,
+    environment.appwrite.database,
+    environment.appwrite.collection.statistic
+  )
 
-  const [statistics, history] = await Promise.all([
-    databases.listDocuments<StatisticDocument>(
-      environment.appwrite.database,
-      environment.appwrite.collection.statistic
-    ),
-    databases.listDocuments<StatisticHistoryDocument>(
+  const filteredStatistics = await statistics.reduce(async (promisedAccumulator, statistic) => {
+    const accumulator = await promisedAccumulator
+    const history = await databases.listDocuments<StatisticHistoryDocument>(
       environment.appwrite.database,
       environment.appwrite.collection.statisticHistory,
-      [Query.greaterThanEqual('$createdAt', yesterday)]
+      [Query.orderDesc('$createdAt'), Query.limit(1)]
     )
-  ])
-
-  const previousStatistics = history.documents.reduce((acc, cur) => {
-    if (!acc[cur.stat.$id]) acc[cur.stat.$id] = cur.value
-    return acc
-  }, {} as Record<string, number>)
-
-  // Only add statistics into history if their values are different from the latest history record
-  const filteredStatistics = statistics.documents.filter(stat => !previousStatistics[stat.$id] || previousStatistics[stat.$id] !== stat.value)
+    const previousValue = history.documents.at(0)?.value || 0
+    if (statistic.value !== previousValue) accumulator.push(statistic)
+    return accumulator
+  }, Promise.resolve([] as StatisticDocument[]))
 
   if (filteredStatistics.length === 0) {
     error('There are no statistics to add into the history')

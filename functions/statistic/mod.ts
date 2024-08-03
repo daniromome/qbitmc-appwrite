@@ -46,7 +46,8 @@ export default async ({ _req, res, log, error }: any) => {
     ),
     databases.listDocuments<PlayerDocument>(
       environment.appwrite.database,
-      environment.appwrite.collection.player
+      environment.appwrite.collection.player,
+      [Query.limit(100)]
     )
   ])
 
