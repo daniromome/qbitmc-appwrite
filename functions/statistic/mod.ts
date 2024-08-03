@@ -126,7 +126,7 @@ export default async ({ _req, res, log, error }: any) => {
           return [...requestAccumulator, ...statRequests]
         }, Promise.resolve([] as Promise<StatisticDocument>[]))
       )
-      log(`Successfully processed ${statistics.length} for player with id ${player}`)
+      log(`Successfully processed ${statistics.length} statistics for player with id ${player}`)
     }
   }
 
