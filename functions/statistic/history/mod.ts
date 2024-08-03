@@ -2,7 +2,7 @@ import { Client, Databases, ID, Permission, Query, Role, Models } from 'https://
 import { StatisticDocument, USER_LABEL, StatisticHistoryDocument } from 'jsr:@qbitmc/common@1.3.2'
 import { loadEnvironment } from 'jsr:@qbitmc/deno@1.3.0/appwrite'
 
-export async function getAllDocuments<T extends Models.Document>(
+async function getAllDocuments<T extends Models.Document>(
   databases: Databases,
   databaseId: string,
   collectionId: string,
