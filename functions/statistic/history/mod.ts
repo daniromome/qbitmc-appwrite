@@ -50,7 +50,8 @@ export default async ({ _req, res, log, error }: any) => {
   const statistics = await getAllDocuments<StatisticDocument>(
     databases,
     environment.appwrite.database,
-    environment.appwrite.collection.statistic
+    environment.appwrite.collection.statistic,
+    [Query.greaterThanEqual('$updatedAt', new Date(Date.now() - 86_400_000).toISOString())]
   )
 
   const filteredStatistics = await statistics.reduce(async (promisedAccumulator, statistic) => {

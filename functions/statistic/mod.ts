@@ -77,7 +77,10 @@ export default async ({ _req, res, log, error }: any) => {
       headers: { Authorization: `Bearer ${environment.pterodactyl.token}`, 'Accept': 'application/json' }
     })
     const listFilesResponse = await listFilesRequest.json() as PterodactylListFilesResponse
-    const statisticFiles = listFilesResponse.data.filter(file => players.includes(file.attributes.name.split('.')[0]))
+    const statisticFiles = listFilesResponse.data.filter(file =>
+      players.includes(file.attributes.name.split('.')[0])
+      && Date.now() - new Date(file.attributes.modified_at).valueOf() <= 1_200_000
+    )
     if (statisticFiles.length === 0) {
       error(`Server ${server.name} does not yet have any statistics in /${world}/stats`)
       return
