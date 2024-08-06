@@ -70,7 +70,7 @@ export default async ({ _req, res, log, error }: any) => {
     const world = server.metadata.find(m => m.key === 'world')?.value
     if (!world) {
       error(`Server ${server.name} does not have a world defined in its metadata`)
-      return
+      return res.empty()
     }
     log(`Processing statistics for server ${server.name}`)
     const listFilesRequest = await fetch(`${environment.pterodactyl.url}/client/servers/${server.$id}/files/list?directory=/${world}/stats`, {
@@ -82,8 +82,8 @@ export default async ({ _req, res, log, error }: any) => {
       && Date.now() - new Date(file.attributes.modified_at).valueOf() <= 1_200_000
     )
     if (statisticFiles.length === 0) {
-      error(`Server ${server.name} does not yet have any statistics in /${world}/stats`)
-      return
+      error(`Server ${server.name} does not yet have any statistics to record in /${world}/stats`)
+      return res.empty()
     }
     const permissions = [
       Permission.read(Role.label(USER_LABEL.FAMILY)),
